@@ -1,88 +1,105 @@
-# Verificação de Número na Sequência de Fibonacci
+# Análise de Faturamento Diário
 
-Este programa em Java calcula a sequência de Fibonacci e verifica se um número informado pertence à sequência.
+Este programa em Java analisa o faturamento diário de uma distribuidora e calcula:
+- O menor valor de faturamento ocorrido em um dia do mês.
+- O maior valor de faturamento ocorrido em um dia do mês.
+- O número de dias no mês em que o valor de faturamento diário foi superior à média mensal.
 
 ## Descrição
 
-O programa realiza os seguintes passos:
-1. Gera a sequência de Fibonacci até que o valor máximo seja maior ou igual ao número informado.
-2. Verifica se o número informado pertence à sequência de Fibonacci.
-3. Retorna uma mensagem indicando se o número está ou não na sequência.
+O programa realiza a análise dos dados de faturamento lidos a partir de um arquivo JSON. Ele considera apenas os dias com faturamento e ignora os dias sem faturamento (como finais de semana e feriados) no cálculo da média mensal.
 
 ## Como Usar
 
 1. **Compile o Programa:**
    ```sh
-   javac FibonacciChecker.java
+   javac FaturamentoDistribuidora.java
    ```
 
 2. **Execute o Programa:**
    ```sh
-   java FibonacciChecker
+   java FaturamentoDistribuidora
    ```
 
-3. **Digite um número quando solicitado.** O programa verificará se o número pertence à sequência de Fibonacci e exibirá o resultado no console.
+3. **Certifique-se de que o arquivo `faturamento.json` está no mesmo diretório do programa.**
 
 ## Código
 
 ```java
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class FibonacciChecker {
+public class FaturamentoDistribuidora {
+
+    static class DiaFaturamento {
+        int dia;
+        double valor;
+
+        DiaFaturamento(int dia, double valor) {
+            this.dia = dia;
+            this.valor = valor;
+        }
+    }
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+        String filePath = "src/question3/faturamento.json";
+        List<DiaFaturamento> faturamentos = new ArrayList<>();
 
-        // Solicita ao usuário que insira um número
-        System.out.print("Informe um número: ");
-        int numero = scanner.nextInt();
-
-        // Variáveis para armazenar os números da sequência de Fibonacci
-        int num1 = 0;
-        int num2 = 1;
-
-        // Variável auxiliar para calcular o próximo número na sequência
-        int fibonacci = num1 + num2;
-
-        // Se o número informado é 0 ou 1, já pertence à sequência de Fibonacci
-        if (numero == 0 || numero == 1) {
-            System.out.println("O número " + numero + " pertence à sequência de Fibonacci.");
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.startsWith("{") && line.endsWith("},")) {
+                    line = line.substring(1, line.length() - 2).trim();
+                    String[] parts = line.split(",");
+                    int dia = Integer.parseInt(parts[0].split(":")[1].trim());
+                    double valor = Double.parseDouble(parts[1].split(":")[1].trim());
+                    faturamentos.add(new DiaFaturamento(dia, valor));
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
             return;
         }
 
-        // Calcula a sequência de Fibonacci até encontrar o número ou ultrapassá-lo
-        while (fibonacci < numero) {
-            num1 = num2;
-            num2 = fibonacci;
-            fibonacci = num1 + num2;
+        // Inicializa as variáveis para calcular os valores requeridos
+        double menorFaturamento = Double.MAX_VALUE;
+        double maiorFaturamento = Double.MIN_VALUE;
+        double somaFaturamento = 0;
+        int diasComFaturamento = 0;
+
+        // Processa os dados
+        for (DiaFaturamento dia : faturamentos) {
+            if (dia.valor > 0) {
+                if (dia.valor < menorFaturamento) {
+                    menorFaturamento = dia.valor;
+                }
+                if (dia.valor > maiorFaturamento) {
+                    maiorFaturamento = dia.valor;
+                }
+                somaFaturamento += dia.valor;
+                diasComFaturamento++;
+            }
         }
 
-        // Verifica se o número pertence à sequência de Fibonacci
-        if (fibonacci == numero) {
-            System.out.println("O número " + numero + " pertence à sequência de Fibonacci.");
-        } else {
-            System.out.println("O número " + numero + " não pertence à sequência de Fibonacci.");
+        // Calcula a média mensal
+        double mediaMensal = somaFaturamento / diasComFaturamento;
+
+        // Conta os dias com faturamento acima da média
+        int diasAcimaDaMedia = 0;
+        for (DiaFaturamento dia : faturamentos) {
+            if (dia.valor > mediaMensal) {
+                diasAcimaDaMedia++;
+            }
         }
 
-        scanner.close();
+        // Exibe os resultados
+        System.out.println("Menor valor de faturamento: " + menorFaturamento);
+        System.out.println("Maior valor de faturamento: " + maiorFaturamento);
+        System.out.println("Número de dias com faturamento acima da média mensal: " + diasAcimaDaMedia);
     }
 }
 ```
-
-## Explicação
-
-- **Entrada:**
-    - O programa solicita ao usuário que digite um número para verificar.
-
-- **Geração da Sequência de Fibonacci:**
-    - A sequência é gerada iterativamente a partir dos números 0 e 1.
-    - O loop continua até que o próximo número da sequência seja maior ou igual ao número informado.
-
-- **Verificação:**
-    - O número informado é comparado com os valores gerados na sequência.
-    - Se o número estiver na sequência, o programa indica que pertence; caso contrário, indica que não pertence.
-
-### Observações
-
-- O programa considera que a sequência de Fibonacci começa com 0 e 1.
-- A verificação é realizada de forma eficiente sem necessidade de gerar a sequência completa para números muito grandes.

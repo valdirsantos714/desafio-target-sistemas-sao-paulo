@@ -1,3 +1,5 @@
+package question3;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -17,7 +19,7 @@ public class FaturamentoDistribuidora {
     }
 
     public static void main(String[] args) {
-        String filePath = "faturamento.json";
+        String filePath = "src/question3/faturamento.json";
         List<DiaFaturamento> faturamentos = new ArrayList<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
